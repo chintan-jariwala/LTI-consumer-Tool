@@ -1,0 +1,123 @@
+<html>
+
+<head>
+  <title>LTI Consumer in HTML</title>
+
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="sha1.js"></script>
+
+  <script type="text/javascript">
+    function getNonce() {
+      return (Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+    }
+
+    function sortForm() {
+      var form = document.getElementById("id_frmData");
+      var temp = [];
+      for (var i = 0; i < form.elements.length; i++) {
+        var e = form.elements[i];
+
+        if (e.name !== undefined && e.name !== "" && e.name !== "oauth_signature")
+          temp.push(e.name + "=" + encodeURIComponent(e.value));
+        
+      }
+      temp.sort();
+      var base = temp.join('&');
+      return base;
+    }
+
+    function post() {
+      var timeStamp = Math.floor((new Date()).getTime() / 1000);
+      // var secret = 'secret';
+      var secret = $('#id_secret').val();
+      var key = $('#id_key').val();
+      var nonce = getNonce();
+      var url = $('#endpoint').val();
+      var type = $('#id_lti_message_type').val();
+
+      document.getElementById("id_frmData").action = url;
+      $('#endpoint').remove();
+      $('#oauth_nonce').val(nonce);
+      $('#oauth_timestamp').val(timeStamp);
+      $('#oauth_consumer_key').val(key)
+      var base_string = sortForm();
+      // base_string = base_string.replace('&oauth_signature=','');
+      base_string = encodeURIComponent(sortForm());
+
+      var url = encodeURIComponent(url);
+      base_string = "POST&" + url + "&" + base_string;
+      console.log(base_string);
+
+      secret = encodeURIComponent(secret) + "&";
+      console.log(secret);
+      var shaObj = new jsSHA("SHA-1", "TEXT");
+      shaObj.setHMACKey(secret, "TEXT");
+      shaObj.update(base_string);
+      var hmac = shaObj.getHMAC("B64");
+
+      console.log(hmac);
+
+      $('#oauth_signature').val(hmac);
+
+      return true;
+    }
+  </script>
+</head>
+
+<body>
+  <form action="http://ltiapps.net/test/tp.php" onsubmit="return post()" name="frmData" id="id_frmData" method="post">
+
+    <h2>Registration Settings</h2>
+    <p>
+      <span class="required"><label>Launch URL: <input type="text" name="endpoint" id="endpoint" value="http://ltiapps.net/test/tp.php" size="80" ></label>&nbsp;<span title="required">[R]</span><br>
+      </span>
+
+      <span class="required"><label>Consumer key: <input type="text" name="key" id="id_key" value="jisc.ac.uk" size="50"></label>&nbsp;<span title="required">[R]</span><br>
+      </span>
+
+      <span class="required"><label>Shared secret: <input type="text" name="secret" id="id_secret" value="" size="50" ></label>&nbsp;<span title="required">[R]</span><br>
+      </span>
+    </p>
+
+    <br />
+
+
+    <input type="hidden" name="context_id" value="9" />
+
+    <input type="hidden" name="launch_presentation_locale" id="" value="en_us" />
+
+
+    <input type="hidden" name="lis_person_contact_email_primary" id="" value="chintan.jari1993@gmail.com" />
+    <input type="hidden" name="lis_person_name_family" id="" value="Jariwala" />
+    <input type="hidden" name="lis_person_name_full" id="" value="Chintan Jariwala" />
+    <input type="hidden" name="lis_person_name_given" id="" value="Chintan" />
+
+    <input type="hidden" name="lti_message_type" value="basic-lti-launch-request" />
+    <input type="hidden" name="lti_version" value="LTI-1p0" />
+
+    <input type="hidden" name="oauth_callback" value="about:blank" />
+    <input type="hidden" name="oauth_consumer_key" id="oauth_consumer_key" value="jisc.ac.uk" />
+    <input type="hidden" name="oauth_nonce" id="oauth_nonce" value="" />
+    <input type="hidden" name="oauth_signature" id="oauth_signature" value="" />
+    <input type="hidden" name="oauth_signature_method" value="HMAC-SHA1" />
+    <input type="hidden" name="oauth_timestamp" id="oauth_timestamp" value="" />
+    <input type="hidden" name="oauth_version" value="1.0" />
+    <input type="hidden" name="resource_link_id" value="abc123" />
+
+    <input type="hidden" name="roles" id="id_roles" value="instructor" />
+
+    <input type="hidden" name="tool_consumer_info_product_family_code" id="" value="MyOrg" />
+
+    <input type="hidden" name="tool_consumer_info_version" id="" value="1.0" />
+
+    <input type="hidden" name="tool_consumer_instance_name" id="" value="qa1" />
+    <input type="hidden" name="user_id" id="" value="228353" />
+
+    <input type="submit" value="Launch Request" />
+
+  </form>
+</body>
+
+</html>
